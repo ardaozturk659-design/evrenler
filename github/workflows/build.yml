@@ -1,0 +1,26 @@
+name: Build
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+      - name: Hazirla
+        run: |
+          mkdir work && cd work
+          curl -L -o mdk.zip https://maven.minecraftforge.net/net/minecraftforge/forge/1.12.2-14.23.5.2860/forge-1.12.2-14.23.5.2860-mdk.zip
+          unzip -q mdk.zip
+          rm -rf src
+          unzip -q ../evrenler-mod.zip 'src/*' -d .
+          chmod +x gradlew
+      - name: Derle
+        working-directory: work
+        run: ./gradlew setupCIWorkspace build --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evrenler-jar
+          path: work/build/libs/*.jar
